@@ -1,0 +1,36 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = "mysql://root:password@localhost:3306/TodoTask"
+}
+
+model User {
+    uid               Int      @id @default(autoincrement())
+    FirstName         String
+    LastName          String
+    email             String
+    passwords         String
+    isAdmin           Boolean
+    username          String
+    isActive          Boolean
+    hasPasswordChange Boolean
+    createdAt         DateTime @default(now())
+    updatedAt         DateTime @updatedAt
+
+    Todos Todos[]
+}
+
+model Todos {
+    tid       String   @id @default(uuid())
+    desc      String
+    title     String
+    lastDate  DateTime
+    isActive  Boolean
+    owner     User     @relation(fields: [ownerId], references: [uid])
+    ownerId   Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
