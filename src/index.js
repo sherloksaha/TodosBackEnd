@@ -22,6 +22,28 @@ const servers = async () => {
     validate: validate2,
   });
   routes?.map((e) => server.route(e));
+
+  //------------------_Event Testing-----------------------------------//
+  server.events.on("route", (route) => {
+    console.log(`New route added....................: ${route.path}`);
+  });
+
+  server.events.on('start', () => {
+
+    console.log('Server started');
+  });
+
+  server.events.on('response', (request) => {
+
+    console.log(`Response sent for request: ${request}`);
+});
+  //------------------------------------------------------------------------------//
+
+
+
+
+
+
   server.decorate("toolkit", "success", function (data) {
     return this.response(data?.result).code(data?.statusCode);
   });
