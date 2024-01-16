@@ -10,8 +10,17 @@ import {
   updatePass,
   PieChartData,
   getUsers,
+  CheckToken,
 } from "../controller/auth.js";
-import { completeTask, deleteTask, getTaskIndividual, getTodo } from "../controller/todos.js";
+import { SchemaR } from "../Validation/register.js";
+import {
+  completeTask,
+  deleteTask,
+  getTaskIndividual,
+  getTodo,
+} from "../controller/todos.js";
+import Joi from "joi";
+import { SchemaT } from "../Validation/task.js";
 
 export const routes = [
   {
@@ -97,6 +106,16 @@ export const routes = [
       auth: {
         strategy: "jwt2",
       },
+      validate: {
+        payload: Joi.object({
+          desc: Joi.string().max(40).min(10).required(),
+          title: Joi.string().min(10).max(20).required(),
+        }),
+        failAction(request, h, err) {
+          request.log("error", err);
+          throw err;
+        },
+      },
     },
   },
   {
@@ -112,31 +131,54 @@ export const routes = [
       auth: {
         strategy: "jwt",
       },
+      validate: {
+        payload: Joi.object({
+          FirstName: Joi.string().max(10).min(2).required(),
+          LastName: Joi.string().min(2).max(10).required(),
+          email: Joi.string().email({
+            minDomainSegments: 2,
+            tlds: { allow: ["com", "net", "in", "info"] },
+          }),
+          username: Joi.string().min(5).max(20).required(),
+          passwords: Joi.string().min(8).max(15).required(),
+        }),
+        failAction(request, h, err) {
+          request.log("error", err);
+          throw err;
+        },
+      },
     },
   },
   {
-    path:"/complete-task",
-    method:httpMethod.PUT,
-    handler:completeTask
+    path: "/complete-task",
+    method: httpMethod.PUT,
+    handler: completeTask,
   },
   {
-    path:"/delete-todo",
-    method:httpMethod.POST,
-    handler:deleteTask,
-    options:{
-      auth:{
-        strategy:"jwt2"
-      }
-    }
+    path: "/delete-todo",
+    method: httpMethod.POST,
+    handler: deleteTask,
+    options: {
+      auth: {
+        strategy: "jwt2",
+      },
+    },
   },
   {
-    path:"/pie-chart-data",
-    method:httpMethod.GET,
-    handler:PieChartData,
-    options:{
-      auth:{
-        strategy:"jwt"
-      }
-    }
+    path: "/pie-chart-data",
+    method: httpMethod.GET,
+    handler: PieChartData,
+    options: {
+      auth: {
+        strategy: "jwt",
+      },
+    },
+  },
+  {
+    path: "/check-token",
+    method: httpMethod.GET,
+    handler: CheckToken,
+    
   }
+  
 ];

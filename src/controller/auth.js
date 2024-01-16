@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+const SECRET = process.env.SECRET_KEY;
 class NotFoundError extends Error {
   constructor(message) {
     super(message);
@@ -50,9 +51,9 @@ export const UserLogIn = async (req, h) => {
     {
       id: findUser.uid,
     },
-    "secreteKey",
+    SECRET,
     {
-      expiresIn: 3600 * 60 * 60,
+      expiresIn: 7 * 24 * 60 * 60,
     }
   );
   const { passwords, ...other } = findUser;
@@ -60,16 +61,15 @@ export const UserLogIn = async (req, h) => {
 };
 
 export const createTodoEveryOne = async (req, h) => {
-
-  const isAdminU= await prisma.user.findFirst({
-    where:{
-      uid:Number(req.auth.credentials.id)
-    }
-  })
-  if(!isAdminU)  return h.response({msg:"You User",ack:0}).code(200)
-  if(!isAdminU.isAdmin){
-    if(isAdminU.uid!==req.payload.ownerId){
-      return h.response({msg:"You are not permitted",ack:0}).code(200)
+  const isAdminU = await prisma.user.findFirst({
+    where: {
+      uid: Number(req.auth.credentials.id),
+    },
+  });
+  if (!isAdminU) return h.response({ msg: "You User", ack: 0 }).code(200);
+  if (!isAdminU.isAdmin) {
+    if (isAdminU.uid !== req.payload.ownerId) {
+      return h.response({ msg: "You are not permitted", ack: 0 }).code(200);
     }
   }
   const data1 = {
@@ -98,7 +98,6 @@ export const createTodoEveryOne = async (req, h) => {
 };
 export const userRegister = async (req) => {
   const userRegisterData = req.payload;
-
   const userExist = await prisma.user.findFirst({
     where: {
       username: userRegisterData.username,
@@ -272,6 +271,21 @@ export const PieChartData = async (req, h) => {
         ack: 1,
       })
       .code(200);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+export const CheckToken = (req, h) => {
+  const token = req.headers.authorization;
+  let remove= String(token).replace("Bearer ","");
+  if (!token) return h.response({ msg: "No token" }).code(400);
+  try {
+    const decoded = jwt.verify(remove,SECRET);
+    if(Date.now()>=decoded.exp*1000){
+      return h.response({msg:"Token_Expired"}).code(200)
+    }
+    return h.response({msg:"All_OK"}).code(200)
   } catch (e) {
     console.log(e);
   }
